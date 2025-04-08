@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"go-template/gin_sqlc_setup/services/auth/config"
 	"net/http"
 	"strings"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(config *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract the token from the Authorization header
 		authHeader := c.GetHeader("Authorization")
@@ -27,14 +28,16 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		tokenStr := parts[1]
+
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			// Ensure token uses expected signing method
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method")
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte("JWT_SECRET_KEY"), nil
+			return []byte(config.JWTSecret), nil
 		})
+
 		if err != nil || !token.Valid {
+			fmt.Println("err", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return

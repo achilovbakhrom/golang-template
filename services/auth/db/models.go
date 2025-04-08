@@ -11,7 +11,7 @@ import (
 type User struct {
 	ID           int32            `json:"id"`
 	Email        string           `json:"email"`
-	PasswordHash string           `json:"password_hash"`
+	PasswordHash string           `json:"-"`
 	Name         pgtype.Text      `json:"name"`
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 }
